@@ -30,18 +30,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     LocationManager locationManager;
     LocationListener locationListener;
-//    private GoogleApiClient googleApiClient;
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
             if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED){
-//                buildGoogleApiClient();
                 mMap.setMyLocationEnabled(true);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, locationListener);
             }
         }
     }
@@ -54,12 +50,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-//        googleApiClient = new GoogleApiClient.Builder(this)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .addApi(LocationServices.API)
-//                .build();
-
     }
 
 
@@ -106,16 +96,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-//            Location lastKnownLocation = locationManager.getLastKnownLocation(locationManager.GPS_PROVIDER);
-//            Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-
-//            LatLng initialLocation = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-            LatLng initialLocation = new LatLng(10.7589381,78.8110241);
-
             mMap.clear();
-            mMap.addMarker(new MarkerOptions().position(initialLocation).title("YourLocation"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(initialLocation));
-
+            mMap.setMyLocationEnabled(true);
         }
 
     }
