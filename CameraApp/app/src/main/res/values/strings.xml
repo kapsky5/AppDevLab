@@ -1,0 +1,7 @@
+<resources>
+	<string name="app_name">SMS With Encryption</string>
+    <string name="capture_photo">Capture Photo</string>
+    <string name="take_video">Take Video</string>
+    <string name="image_or_video_name">Image or Video Name</string>
+    <string name="captured_image">Captured Image</string>
+</resources>
