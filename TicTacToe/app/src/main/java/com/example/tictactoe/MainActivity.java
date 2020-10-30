@@ -4,82 +4,115 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.GridLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    int activePlayer = 0;
-    boolean gameStatus = true;
-    int[] status = {2,2,2,2,2,2,2,2,2};
-    boolean gameDraw=false;
+    private final static int GRID_SIZE = 3;
 
-    public void onTouch(View view){
-        ImageView counter = (ImageView) view;
-        int index = Integer.parseInt(counter.getTag().toString());
-        LinearLayout resultBox = (LinearLayout) findViewById(R.id.result);
-        TextView restext = (TextView) findViewById(R.id.resultText);
+    private CellStatus[][] mGameState;
+    private ImageButton[][] mButtons;
 
-        if(status[index]==2 && gameStatus){
-            counter.setTranslationY(-1000f);
-            if(activePlayer==0){
-                counter.setImageResource(R.drawable.cross3);
-                status[index]=activePlayer;
-                activePlayer=1;
+    private Button mResetButton;
+    private TextView mMessageText;
 
-            }
-            else{
-                counter.setImageResource(R.drawable.zero);
-                status[index]=activePlayer;
-                activePlayer=0;
-            }
+    private int mCurrentPlayer = CellStatus.FIRST_PLAYER;
 
-            counter.animate().translationYBy(1000f).rotation(360).setDuration(300);
-            int[][] winPos = {{0,1,2}, {3,4,5}, {6,7,8}, {0,3,6}, {1,4,7}, {2,5,8}, {0,4,8}, {2,4,6}};
-            for(int i=0; i<winPos.length; i++){
-                if(status[winPos[i][0]] == status[winPos[i][1]] && status[winPos[i][0]]==status[winPos[i][2]] && status[winPos[i][0]]!=2){
-                    gameStatus = false;
-                    String ans = "Player " + status[winPos[i][0]] + " Has Won !!!" ;
-                    restext.setText(ans);
-                    resultBox.setVisibility(View.VISIBLE);
-                }
+    private void resetGameState() {
+        mMessageText.setText("Tic Tac Toe");
+        for (int i = 0; i < GRID_SIZE; ++i) {
+            for (int j = 0; j < GRID_SIZE; ++j) {
+                mGameState[i][j] = new CellStatus();
+                mButtons[i][j].setImageResource(R.drawable.empty);
             }
-        }
-        gameDraw=true;
-        for(int i=0; i<9; i++){
-            if(status[i]==2){
-                gameDraw=false;
-            }
-        }
-        if(gameDraw){
-            gameStatus = false;
-            String ans = "Game is a Draw !!!" ;
-            restext.setText(ans);
-            resultBox.setVisibility(View.VISIBLE);
         }
     }
 
-    public void playAgain(View view){
-        LinearLayout resultBox = (LinearLayout) findViewById(R.id.result);
-        activePlayer=0;
-        for(int i=0; i<9; i++){
-            status[i]=2;
+    protected int checkGameWin() {
+        if (checkPlayerWon(CellStatus.FIRST_PLAYER)) return CellStatus.FIRST_PLAYER;
+        if (checkPlayerWon(CellStatus.SECOND_PLAYER)) return CellStatus.SECOND_PLAYER;
+        int count = 0;
+        for (int i = 0; i < GRID_SIZE; ++i) {
+            for (int j = 0; j < GRID_SIZE; ++j) {
+                if (mGameState[i][j].getPlayer() != CellStatus.NO_PLAYER) ++count;
+            }
         }
-        resultBox.setVisibility(View.INVISIBLE);
-        gameStatus = true;
-        GridLayout zerox = findViewById(R.id.grid);
-        for(int i=0; i<3*zerox.getColumnCount(); i++){
-            ((ImageView) zerox.getChildAt(i)).setImageResource(0);
-        }
+        if (count == 9) return CellStatus.DRAW;
+        return CellStatus.NO_PLAYER;
     }
 
+    private boolean checkPlayerWon(int player) {
+        boolean winDiag1 = true, winDiag2 = true;
+        for (int i = 0; i < GRID_SIZE; ++i) {
+            winDiag1 = winDiag1 && mGameState[i][i].getPlayer() == player;
+            winDiag2 = winDiag2 && mGameState[i][2 - i].getPlayer() == player;
+            boolean winRow = true, winCol = true;
+            for (int j = 0; j < GRID_SIZE; ++j) {
+                winRow = winRow && mGameState[i][j].getPlayer() == player;
+                winCol = winCol && mGameState[j][i].getPlayer() == player;
+            }
 
+            if (winRow || winCol) return true;
+        }
+
+
+        if (winDiag1 || winDiag2) return true;
+
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mGameState = new CellStatus[GRID_SIZE][GRID_SIZE];
+        mButtons = new ImageButton[GRID_SIZE][GRID_SIZE];
+        mResetButton = findViewById(R.id.new_game_button);
+        mMessageText = findViewById(R.id.top_text);
+
+        for (int i = 0; i < GRID_SIZE; ++i) {
+            for (int j = 0; j < GRID_SIZE; ++j) {
+                String buttonId = "cell_" + i + j;
+                int resID = getResources().getIdentifier(buttonId, "id", getPackageName());
+                mButtons[i][j] = findViewById(resID);
+                final int row = i, col = j;
+                mButtons[i][j].setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (mGameState[row][col].getPlayer() == CellStatus.NO_PLAYER) {
+                            mGameState[row][col].setPlayer(mCurrentPlayer);
+                            if (mCurrentPlayer == CellStatus.FIRST_PLAYER) {
+                                mButtons[row][col].setImageResource(R.drawable.nought);
+                            } else {
+                                mButtons[row][col].setImageResource(R.drawable.cross);
+                            }
+                            mCurrentPlayer = mCurrentPlayer == CellStatus.FIRST_PLAYER ? CellStatus.SECOND_PLAYER : CellStatus.FIRST_PLAYER;
+                            int winner = checkGameWin();
+                            if (winner == CellStatus.FIRST_PLAYER)
+                                mMessageText.setText("Winner is First Player!");
+                            else if (winner == CellStatus.SECOND_PLAYER)
+                                mMessageText.setText("Winner is Second Player!");
+                            else if (winner == CellStatus.DRAW)
+                                mMessageText.setText("Match is draw!");
+
+                        }
+                    }
+                });
+            }
+        }
+
+        mResetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                resetGameState();
+            }
+        });
+
+
+        resetGameState();
     }
+
+
 }
