@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SimpleMediaPlayer</string>
+    <string name="play_music">Play Music</string>
+    <string name="stop_music">Stop Music</string>
+    <string name="play_video">Play Video</string>
+    <string name="stop_video">Stop Video</string>
+</resources>
